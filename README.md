@@ -1,4 +1,4 @@
-# crossdomain
+# viboot-front
 
 ## Project setup
 ```
