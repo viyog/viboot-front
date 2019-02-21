@@ -2,22 +2,21 @@ import request from '../util/request'
 
 export function get() {
   return request({
-    url: '/user',
+    url: '/users',
     method: 'get'
   })
 }
 
 export function getOne(id) {
   return request({
-    url: '/user/query',
-    method: 'get',
-    params: { id }
+    url: '/users/' + id,
+    method: 'get'
   })
 }
 
 export function post(userName, password) {
   return request({
-    url: '/user',
+    url: '/users',
     method: 'post',
     data: {
       userName,
@@ -28,7 +27,7 @@ export function post(userName, password) {
 
 export function put(id, userName, password) {
   return request({
-    url: '/user',
+    url: '/users',
     method: 'put',
     data: {
       id,
@@ -40,7 +39,7 @@ export function put(id, userName, password) {
 
 export function del(id) {
   return request({
-    url: '/user',
+    url: '/users',
     method: 'delete',
     params: { id }
   })
