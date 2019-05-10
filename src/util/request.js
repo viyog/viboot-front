@@ -2,7 +2,7 @@ import axios from 'axios'
 
 // 创建axios实例
 const service = axios.create({
-  baseURL: "http://localhost:8088/api"
+  baseURL: "http://localhost:18080/api"
 })
 
 // request拦截器

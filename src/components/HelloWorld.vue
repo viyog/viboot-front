@@ -1,68 +1,116 @@
 <template>
   <div>
-    <div>
-      <button @click="get()">{{getMsg}}</button>
+    <div class="uploadDiv1">
+      <uploader
+        ref="uploader"
+        :options="uploadOptions1"
+        :autoStart="true"
+        @file-added="onFileAdded1"
+        @file-success="onFileSuccess1"
+        @file-progress="onFileProgress1"
+        @file-error="onFileError1"
+        class="uploader-app"
+      >
+        <uploader-unsupport></uploader-unsupport>
+        <uploader-drop>
+          <uploader-btn style="margin-right:20px;" :attrs="attrs">选择文件</uploader-btn>
+
+          <uploader-btn :attrs="attrs" directory>选择文件夹</uploader-btn>
+        </uploader-drop>
+        <uploader-list></uploader-list>
+      </uploader>
     </div>
-    <div>
-      <button @click="getOne()">{{getOneMsg}}</button>
-    </div>
-    <div>
-      <button @click="put()">{{putMsg}}</button>
-    </div>
-    <div>
-      <button @click="post()">{{postMsg}}</button>
-    </div>
-    <div>
-      <button @click="del()">{{deleteMsg}}</button>
+    <div class="uploadDiv2">
+      <uploader
+        ref="uploader"
+        :options="uploadOptions2"
+        :autoStart="true"
+        :files="files"
+        @file-added="onFileAdded2"
+        @file-success="onFileSuccess2"
+        @file-progress="onFileProgress2"
+        @file-error="onFileError2"
+        class="uploader-app"
+      >
+        <uploader-unsupport></uploader-unsupport>
+        <uploader-drop>
+          <uploader-btn :attrs="attrs">分块上传</uploader-btn>
+        </uploader-drop>
+        <uploader-list></uploader-list>
+      </uploader>
     </div>
   </div>
 </template>
 
 <script>
-import { get, post, put, del, getOne } from "../api/cross";
+import { merge } from "../api/upload";
+
 /* eslint-disable */
 export default {
   name: "HelloWorld",
   data() {
     return {
-      getMsg: "GET ALL",
-      getOneMsg: "GET ONE",
-      putMsg: "PUT",
-      postMsg: "POST",
-      deleteMsg: "DELETE"
+      files: [],
+      uploadOptions1: {
+        target: "//localhost:18080/api/upload/single",
+        testChunks: false, //是否开启服务器分片校验
+        fileParameterName: "file",
+        headers: {},
+        query() {},
+        categaryMap: {
+          image: ["gif", "jpg", "jpeg", "png", "bmp"]
+        }
+      },
+      uploadOptions2: {
+        target: "//localhost:18080/api/upload/chunk",
+        chunkSize: 1 * 1024 * 1024,
+        testChunks: true,
+        checkChunkUploadedByResponse: function(chunk, message) {
+          let objMessage = JSON.parse(message);
+          let chunkNumbers = objMessage.chunkNumbers;
+          return (chunkNumbers || []).indexOf(chunk.offset + 1) >= 0;
+        },
+        headers: {},
+        query() {},
+        categaryMap: {
+          image: ["gif", "jpg", "jpeg", "png", "bmp"],
+          zip: ["zip"],
+          document: ["csv"]
+        }
+      },
+      attrs: {},
+      panelShow: false, //选择文件后，展示上传panel
+      collapse: false
     };
   },
   methods: {
-    get() {
-      get().then(response => {
-        console.log(response);
-      });
+    onFileAdded1(file) {
+      console.log(file);
     },
-    getOne() {
-      const id = "10000001";
-      getOne(id).then(response => {
-        console.log(response);
-      });
+    onFileProgress1(rootFile, file, chunk) {},
+    onFileSuccess1(rootFile, file, response, chunk) {},
+    onFileError1(rootFile, file, response, chunk) {},
+    onFileAdded2(file) {
+      console.log(file);
     },
-    put() {
-      const id = "10000001";
-      const username = "vi";
-      const password = "123456";
-      put(id, username, password).then(response => {
-        console.log(response);
-      });
+    onFileProgress2(rootFile, file, chunk) {},
+    onFileSuccess2(rootFile, file, response, chunk) {
+      let res = JSON.parse(response);
+      if (res.code == 1) {
+        return;
+      }
+      if (res.code == 205) {
+        const formData = new FormData();
+        formData.append("identifier", file.uniqueIdentifier);
+        formData.append("filename", file.name);
+        merge(formData).then(response => {});
+      } else {
+      }
     },
-    post() {
-      const username = "vi";
-      const password = "123456";
-      post(username, password).then(response => {
-        console.log(response);
-      });
-    },
-    del() {
-      const id = "10000001";
-      del(id).then(response => {
-        console.log(response);
+    onFileError2(rootFile, file, response, chunk) {
+      this.$message({
+        message: response,
+        type: "error"
       });
     }
   }
